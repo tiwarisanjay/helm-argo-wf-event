@@ -1,0 +1,22 @@
+image:
+  repository: hashicorp
+  pullPolicy: IfNotPresent
+  tag: "latest"
+  name: "terraform"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+argoEvent:
+
+argoWorkflow:
+  namespace: workflows
+  serviceAccount: workflows 
+  clients:
+    - client1
+    - client2
+
+sensor:
+  namespace: argo-events
+  serviceAccount: argo-events-sa

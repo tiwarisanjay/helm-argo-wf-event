@@ -1,0 +1,40 @@
+{{- $root     := . -}}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: tf-apply-template
+spec:
+  serviceAccountName: workflows
+  templates:
+    - name: tf-apply-template
+      inputs:
+        parameters:
+          - name: nsname 
+          - name: repo_url 
+          - name: repo_name
+      volumes:
+        - name: config-vol
+          configMap:
+            name: kube-context
+            items:
+              - key: config
+                path: config
+        - name: tfstat-vol
+          persistentVolumeClaim:
+            claimName: tf-storage-claim
+      container:
+        image: {{ template "terraform.image" $root }}
+        volumeMounts:
+          - name: config-vol
+            mountPath: /etc/kube
+          - name: tfstat-vol
+            mountPath: /tmp/tfstat
+        command:
+          - /bin/sh
+          - -c
+          - |
+              git clone {{`"{{inputs.parameters.repo_url}}"`}}
+              cd {{`"{{inputs.parameters.repo_name}}"`}}/{{`"{{inputs.parameters.nsname}}"`}}
+              terraform init
+              terraform apply -auto-approve -var client={{`"{{inputs.parameters.nsname}}"`}}

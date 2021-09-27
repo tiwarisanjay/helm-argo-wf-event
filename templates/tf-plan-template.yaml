@@ -1,0 +1,25 @@
+{{- $root     := . -}}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: tf-plan-template
+spec:
+  serviceAccountName: workflows
+  templates:
+    - name: tf-plan-template
+      inputs:
+        parameters:
+          - name: nsname
+          - name: repo_url 
+          - name: repo_name
+      container:
+        image: {{ template "terraform.image" $root }}
+        command: 
+            - /bin/sh
+            - -c 
+            - | 
+              git clone {{`"{{inputs.parameters.repo_url}}"`}}
+              cd {{`"{{inputs.parameters.repo_name}}"`}}/{{`"{{inputs.parameters.nsname}}"`}}
+              terraform init
+              terraform plan -var client={{`"{{inputs.parameters.nsname}}"`}}
