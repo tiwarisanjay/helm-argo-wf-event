@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ .Values.eventSource.name }}
+  namespace: {{ .Values.eventSource.namespace }}
+spec:
+  service:
+    ports:
+      - port: {{ .Values.eventSource.service.port }}
+        targetPort: {{ .Values.eventSource.service.targetPort }}
+  webhook:
+    {{- range $key, $val := .Values.eventSource.webhook }} 
+    {{- $val.eventName | nindent 3 }}: ## - before key will stop adding newline 
+      port: {{ $val.port | quote }}
+      endpoint: {{ $val.endpoint | printf "/%s" }}
+      method: {{ $val.method }}
+    {{- end }}

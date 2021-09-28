@@ -1,3 +1,4 @@
+{{- $clients := .Values.eventSource.webhook.app1.clients }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
@@ -9,8 +10,8 @@ spec:
     serviceAccountName: {{ .Values.sensor.serviceAccount }}
   dependencies:
     - name: terraform-workflow
-      eventSourceName: event-source
-      eventName: template-tf
+      eventSourceName: {{ .Values.eventSource.name }}
+      eventName: {{ .Values.eventSource.webhook.app1.eventName }}
   triggers:
     - template:
         name: terraform-wf-template
@@ -28,10 +29,6 @@ spec:
                 dependencyName: terraform-workflow
                 dataKey: body.repository.name
               dest: spec.templates.1.inputs.parameters.1.value
-            - src:
-                dependencyName: terraform-workflow
-                dataKey: body.message
-              dest: spec.templates.0.inputs.parameters.0.value
           source:
             resource: #============== Terrafrom Workflow template
               apiVersion: argoproj.io/v1alpha1
@@ -46,30 +43,17 @@ spec:
                 serviceAccountName: {{ .Values.argoWorkflow.serviceAccount }}
                 templates:
                   - name: tf-flow
-                    inputs:
-                      parameters:
-                        - name: message
-                          value: Hello World 
                     dag:
                       tasks:
-                        - name: task-echo # Echo Task
-                          templateRef: # You can reference a "template" from another "WorkflowTemplate or ClusterWorkflowTemplate" using this field
-                            name: echo-test-template # This is the name of the "WorkflowTemplate or ClusterWorkflowTemplate" CRD that contains the "template" you want
-                            template: echo-test-template # This is the name of the "template" you want to reference
-                            clusterScope: true
-                          arguments:
-                            parameters:
-                              - name: message
-                                value: {{`"{{inputs.parameters.message}}"`}}
                         # CHECK TERRAFORM VERSION ON GIVEN IMAGE
                         - name: tf-version # Check Terraform Version
-                          templateRef:
-                            name: tf-version-template
-                            template: tf-version-template
+                          templateRef: #You can reference a "template" from another "WorkflowTemplate or ClusterWorkflowTemplate" using this field
+                            name: tf-version-template # This is the name of the "WorkflowTemplate or ClusterWorkflowTemplate" CRD that contains the "template" you want
+                            template: tf-version-template # This is the name of the "template" you want to reference
                             clusterScope: true
                         #Create a helm loop to get all teh clients
-                        {{- range .Values.argoWorkflow.clients }}
-                        - name: {{ . | printf "client_%s" | quote }}
+                        {{- range $clients  }}
+                        - name: {{ . | printf "client-%s" | quote }}
                           template: nested-tf-flow
                           arguments:
                             parameters:
@@ -93,7 +77,7 @@ spec:
                         - name: tf-plan # Terraform Plan
                           arguments:
                             parameters:
-                              - name: nsname
+                              - name: client
                                 value: {{`"{{inputs.parameters.client}}"`}}
                               - name: repo_url
                                 value: {{`"{{inputs.parameters.repo_url}}"`}}
@@ -115,7 +99,7 @@ spec:
                         - name: tf-apply # Terraform apply
                           arguments:
                             parameters:
-                              - name: nsname
+                              - name: client
                                 value:  {{`"{{inputs.parameters.client}}" `}}
                               - name: repo_url
                                 value:  {{`"{{inputs.parameters.repo_url}}" `}}

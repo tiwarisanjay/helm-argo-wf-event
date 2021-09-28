@@ -7,16 +7,39 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
-argoEvent:
-
+  
 argoWorkflow:
   namespace: workflows
   serviceAccount: workflows 
   clients:
-    - client1
-    - client2
+    app1:
+      - client1
+      - client2
+    app2:
+      - hello_world
 
 sensor:
   namespace: argo-events
   serviceAccount: argo-events-sa
+
+eventSource:
+  name: sanjay-event-source
+  namespace: argo-events
+  service:
+    port: 13000
+    targetPort: 13000
+  webhook: 
+    app1: 
+      eventName: app1-tf-ep
+      endpoint: app1-tf-ep
+      method: POST 
+      port: 13000
+      clients: 
+        - client1
+        - client2 
+    app2: 
+      eventName: app2-hello-world
+      endpoint: app2-hello-world
+      method: POST 
+      port: 13000
+      clients: {}

@@ -10,7 +10,7 @@ spec:
     - name: tf-apply-template
       inputs:
         parameters:
-          - name: nsname 
+          - name: client 
           - name: repo_url 
           - name: repo_name
       volumes:
@@ -35,6 +35,6 @@ spec:
           - -c
           - |
               git clone {{`"{{inputs.parameters.repo_url}}"`}}
-              cd {{`"{{inputs.parameters.repo_name}}"`}}/{{`"{{inputs.parameters.nsname}}"`}}
+              cd {{`"{{inputs.parameters.repo_name}}"`}}/{{`"{{inputs.parameters.client}}"`}}
               terraform init
-              terraform apply -auto-approve -var client={{`"{{inputs.parameters.nsname}}"`}}
+              terraform apply -auto-approve -var client={{`"{{inputs.parameters.client}}"`}}
