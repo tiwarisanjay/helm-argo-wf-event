@@ -10,3 +10,5 @@ curl -d '{"repository": { "name": "tf-create-k8-namepsace", "git_url": "git://gi
 curl -d '{"message":"Bhiya Ram!!"}' -H 'Content-Type: application/json' -X POST http://localhost:31831/app2-hello-wo
 
 argo resume $WF --node-field-selector name=test-tf-bbnj5.client1-process.tf-approve  -n workflows
+
+curl -d '{"message":"Bhiya Ram!!"}' -H 'Content-Type: application/json' -X POST http://localhost:32696/app2-hello-world
